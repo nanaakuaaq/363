@@ -1,0 +1,52 @@
+---
+title: "s&ds 363 hw 2"
+author: "Gabi Picott"
+date: "2024-02-06"
+output: html_document
+---
+
+Set up & load libraries
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(pubtheme)
+library(heplots)
+library(car)
+library(corrplot)
+library(PerformanceAnalytics)
+
+
+```
+
+
+Read our data set
+```{r}
+rest_rev <- read_csv("data/Restaurant_revenue.csv")
+rest_rev
+```
+
+```{r}
+qqPlot(rest_rev$Monthly_Revenue, main = "QQ Plot of Revenue")
+qqPlot(rest_rev$Average_Customer_Spending, main = "QQ Plot of Average Customer Spending")
+qqPlot(rest_rev$Marketing_Spend, main = "QQ Plot of Marketing Spend")
+qqPlot(rest_rev$Number_of_Customers, main = "QQ Plot of Number of Customers")
+qqPlot(rest_rev$Menu_Price, main = "QQ Plot of Menu Price")
+
+
+hist(rest_rev$Monthly_Revenue)
+hist(rest_rev$Average_Customer_Spending)
+hist(rest_rev$Marketing_Spend)
+hist(rest_rev$Number_of_Customers)
+hist(rest_rev$Menu_Price)
+
+```
+
+```{r}
+cqplot(rest_rev[,-1], main = "Restaurant Revenue")
+
+
+```
+
+```{r}
+```
+

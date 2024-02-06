@@ -1,0 +1,165 @@
+---
+title: "Matrices and Multivariate Normality"
+author: "JDRS"
+output: html_document
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+The `car` library has some handy multivariate features as does the `heplots` library
+
+```{r}
+library(car)
+library(heplots)
+
+```
+###  Examples of Matrices in R
+
+There are plenty of built in matrix functions in R - R thinks in terms of matrices!
+
+For starters, we create two 3x3 matrices and perform some basic function.
+
+```{r}
+#make the matrices
+matrixA <- matrix(c(3, 2, 4, 7, 5, 0, 1, 0, 8), ncol = 3, byrow = T)
+matrixB <- matrix(c(6, 1, 0, 2, 8, 7, 3, 4, 5), ncol = 3, byrow = T)
+
+#Add a constant to a matrix
+matrixA + 5
+
+#Add two matrices
+matrixA + matrixB
+
+#Matrix multiplication
+matrixA%*%matrixB
+
+#transpose of a matrix
+t(matrixA)
+
+#inverse of a matrix
+solve(matrixA)
+
+#determinant of a matrix
+det(matrixA)
+
+#eigenvalues/eigenvectors of a matrix
+eigen(matrixA)
+
+matrixbB <- matrix(c(3, 1, 1, 2), nrow = 2, byrow = T)
+eigen(matrixbB)
+
+```
+
+###  Assessing univariate normality in R - Normal Quantile Plots
+
+There are several good functions for creating normal quantile plots.  Built in to R are `qqnorm` (and `qqline`).  I think better is `qqPlot()` in the `car()` package.
+
+**Example**: World Bank Data
+
+```{r}
+#read in data from online location
+WBtrans <- read.csv("http://reuningscherer.net/multivariate/data/WB.2016.WithTrans.csv", header = T)
+names(WBtrans)
+
+#Get a normal quantile plot of Energy Use per capita, raw scale
+qqnorm(WBtrans$GNI)
+
+#somewhat more refined plot
+qqnorm(WBtrans$EnergyUse, col = 'red', pch = 19, cex = 1.2, main = "Normal Quantile Plot")
+qqline(WBtrans$EnergyUse, lwd = 2)
+
+#My preferred normal quantile plot function - qqPlot in the car package
+qqPlot(WBtrans$EnergyUse, col = 'red', pch = 19)
+
+#Same plot, log scale
+qqPlot(WBtrans$logEnergyUse, col = 'red', pch = 19)
+
+```
+
+###  Assessing MULTIVARIATE normality in R - Chi-Square Quantile Plots
+
+I have written a function called `CSQPlot()` that creates chi-square quantile plots from raw data.  Here's an example on some variables from the World Bank Data.
+
+**Example**: World Bank Data
+
+```{r}
+#make square plots
+
+#read in data from online location
+
+#WBtrans <- read.csv("http://reuningscherer.net/multivariate/data/WB.2016.WithTrans.csv", header = T)
+#names(WBtrans)
+
+#check multivariate normality ??? get online function
+source("http://www.reuningscherer.net/multivariate/R/CSQPlot.r.txt")
+
+#Only works for countries with complete data
+#Look at following variables : 
+#	%Rural
+#	log(CO2 per capita)
+#	log(energy use per capita)
+# log(GNI)
+#	Fertility Rate
+#	log(Imports)
+#	log(Exports)
+
+#  This leaves 119 countries with complete data
+WBtemp <- WBtrans[complete.cases(WBtrans[, c(4, 30, 32, 31, 12, 33, 34)]), ]
+
+#run the function on transformed data
+CSQPlot(WBtemp[, c(4, 30, 32, 31, 12, 33, 34)], label = "Transformed 2016 World Bank Data")
+
+#here is untransformed data
+CSQPlot(WBtemp[, c(4, 18, 19, 5, 12, 7, 8)], label = "Raw 2016 World Bank Data")
+
+```
+Let's try doing same thing in two other packages: use `qqPlot()` in `car`.
+```{r}
+#First try in car package.  This uses the qqPlot function but requires that we first calculate the Mahalanobis distances (from the heplots 
+
+#run the function on transformed data
+qqPlot(Mahalanobis(WBtemp[, c(4, 30, 32, 31, 12, 33, 34)]), dist = "chisq", df = 7, main = "Transformed 2016 World Bank Data", pch=19, col = 'red', ylab = "Squared Mahalanobis Distances")
+
+
+#Another option - use the cqplot function in 'heplots'.  Again, transformed data.  This function has options to change the confidence envelope, colors, etc.  Super cool function!
+
+cqplot(WBtemp[, c(4, 30, 32, 31, 12, 33, 34)], main = "Transformed 2016 World Bank Data", pch = 19, conf = .95)
+cqplot(WBtemp[, c(4, 30, 32, 31, 12, 33, 34)], main = "Transformed 2016 World Bank Data", pch = 19, conf = .95, fill.color = 'light blue', fill.alpha = .1)
+
+
+```
+
+The results for `cqplot()` and `CSQPlot()` are basically identical.  The envelope for the `qqPlot()` function after calculating squared Mahalanobis distances is a bit wider and is calculated slightly differently.
+
+
+
+FINALLY - 
+
+**SIMULATION EXAMPLE to see the effect of sample size on shape of Chi-Square Quantile plots**
+
+```{r}
+#an example of the effect of sample size on chi-square quantile plots 
+#to test multivariate normality
+
+
+#simulation to show effect of sample size
+#p = number of dimensions
+#requires function reschisqplot function
+
+multnormsize <- function(p) {
+  temp <- matrix(rnorm(p*100*p, 0, 1), nrow = 100*p, ncol = p)
+  vec <- round(c(c(1:4), seq(0, 8, 1)*p+10, 20*p, 90*p), 0)+p
+  for (i in 1:length(vec)){
+    cqplot(temp[c(1:vec[i]),], main = paste("Dimensions = ",p," , N =", vec[i]))
+  }
+}
+
+multnormsize(10)
+
+```
+```{r}
+#try doing same thing in 
+```
+
